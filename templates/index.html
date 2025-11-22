@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Population Dynamics</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0f1117;
+        --panel: #161a23;
+        --accent: #00d1ff;
+        --text: #e4e8ff;
+        --muted: #9aa1c0;
+      }
+
+      * {
+        box-sizing: border-box;
+        font-family: "Segoe UI", Roboto, system-ui, -apple-system, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background: radial-gradient(circle at top, #1d2232, #0a0c12);
+        color: var(--text);
+        min-height: 100vh;
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      main {
+        width: min(1100px, 100%);
+        background: rgba(12, 14, 22, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 18px;
+        padding: 2rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(10px);
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        margin-bottom: 2rem;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        color: var(--accent);
+        letter-spacing: 0.02em;
+      }
+
+      form {
+        margin-bottom: 2rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      select {
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--text);
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        min-width: 220px;
+      }
+
+      button {
+        background: linear-gradient(135deg, #00d1ff, #005eff);
+        border: none;
+        color: #0f1117;
+        padding: 0.8rem 1.6rem;
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      button:hover {
+        opacity: 0.9;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .card {
+        background: var(--panel);
+        border-radius: 14px;
+        padding: 1.2rem;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+      }
+
+      .card h3 {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .card p {
+        margin: 0.35rem 0 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+      }
+
+      .chart {
+        background: var(--panel);
+        border-radius: 18px;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        margin-bottom: 2rem;
+      }
+
+      img {
+        width: 100%;
+        border-radius: 12px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+
+      th,
+      td {
+        padding: 0.75rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      th {
+        text-align: left;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      @media (max-width: 600px) {
+        body {
+          padding: 1rem;
+        }
+
+        main {
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="muted">Dynamic Population System</p>
+        <h1>Population Insights</h1>
+        <p>Eksplorasi data populasi historis dan proyeksi untuk berbagai negara.</p>
+      </header>
+
+      <form method="post">
+        <label>
+          <span>Pilih negara</span><br />
+          <select name="country">
+            {% for name in countries %}
+            <option value="{{ name }}" {% if name == selected %}selected{% endif %}>
+              {{ name }}
+            </option>
+            {% endfor %}
+          </select>
+        </label>
+        <button type="submit">Tampilkan</button>
+      </form>
+
+      <section class="grid">
+        {% for key, value in stats.items() %}
+        <article class="card">
+          <h3>{{ key }}</h3>
+          <p>{{ value }}</p>
+        </article>
+        {% endfor %}
+      </section>
+
+      <section class="chart">
+        <img src="data:image/png;base64,{{ chart }}" alt="Population chart" />
+      </section>
+
+      <section class="card" style="margin-bottom: 1.5rem">
+        <h3>Simulasi 50 Tahun</h3>
+        <p style="margin-top: 0.6rem; color: var(--muted)">
+          {{ forecast_summary }}
+        </p>
+      </section>
+
+      <section>
+        <h2>Ringkasan Proyeksi</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Tahun</th>
+              <th>Eksponensial</th>
+              <th>Logistic</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in forecast_table %}
+            <tr>
+              <td>{{ row.year }}</td>
+              <td>{{ row.exp }}</td>
+              <td>{{ row.log }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Riwayat Populasi {{ country }}</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Tahun</th>
+              <th>Populasi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for year, value in population_history %}
+            <tr>
+              <td>{{ year }}</td>
+              <td>{{ value }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>
+
